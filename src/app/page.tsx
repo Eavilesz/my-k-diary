@@ -8,16 +8,16 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-3 flex flex-col justify-center">
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-center bg-gradient-to-br from-[#ff8ba7] via-[#ffc6c7] to-[#faeee7] text-transparent bg-clip-text animate-gradient pb-6">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-center bg-gradient-to-br from-[#ff8ba7] via-[#ffc6c7] to-[#faeee7] text-transparent bg-clip-text animate-gradient pb-3 md:pb-6">
             My K-Diary
           </h1>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-center text-[#ff8ba7] mb-6 underline">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-center text-[#ff8ba7] mb-3 md:mb-6 underline">
             A Virtuous Business
           </h2>
 
-          <div className="flex flex-col lg:flex-row gap-6 mt-6">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-3 lg:mt-6">
             {/* Left Card: Image and Rating */}
-            <div className="lg:w-1/3 lg:sticky lg:top-4 self-start bg-white/90 backdrop-blur-sm rounded-xl shadow-[0_20px_50px_rgba(255,183,197,0.3)] p-6 hover:shadow-[0_20px_50px_rgba(255,183,197,0.5)] transition-all duration-300 flex flex-col items-center border border-pink-100/50">
+            <div className="lg:w-1/3 mx-auto lg:mx-0 max-w-xs lg:max-w-none lg:sticky lg:top-4 self-start bg-white/90 backdrop-blur-sm rounded-xl shadow-[0_20px_50px_rgba(255,183,197,0.3)] p-6 hover:shadow-[0_20px_50px_rgba(255,183,197,0.5)] transition-all duration-300 flex flex-col items-center border border-pink-100/50">
               <Image
                 src="https://cdn-images.dzcdn.net/images/cover/5a15842b74960a45a40ad8a0fe2e39fe/0x1900-000000-80-0-0.jpg"
                 alt="A Virtuous Business Cover"
