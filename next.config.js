@@ -4,8 +4,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "upload.wikimedia.org",
-        pathname: "/wikipedia/**",
+        hostname: "cdn-images.dzcdn.net",
+        pathname: "/images/cover/**",
       },
       {
         protocol: "https",
