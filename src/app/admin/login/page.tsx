@@ -2,7 +2,7 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { FcGoogle } from "react-icons/fc"; // Import Google icon
 import { useEffect } from "react";
 
 export default function LoginPage() {
@@ -46,13 +46,7 @@ export default function LoginPage() {
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg p-3 text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <Image
-              src="/google-logo.svg"
-              alt="Google"
-              width={20}
-              height={20}
-              className="w-5 h-5"
-            />
+            <FcGoogle className="w-5 h-5" />
             Iniciar sesión con Google
           </button>
         </div>

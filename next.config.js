@@ -12,6 +12,12 @@ const nextConfig = {
         hostname: "images.mubicdn.net",
         pathname: "/images/cast_member/**",
       },
+      {
+        protocol: "https",
+        hostname: "**",
+        port: "",
+        pathname: "**",
+      },
     ],
   },
   experimental: {
