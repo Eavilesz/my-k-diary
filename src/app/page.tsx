@@ -1,179 +1,199 @@
+import Link from "next/link";
 import Image from "next/image";
-import { SiNetflix, SiPrimevideo, SiVk, SiYoutube } from "react-icons/si";
-import { FaMusic, FaStar } from "react-icons/fa";
-import StatusBadge from "@/components/StatusBadge";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { FaStar } from "react-icons/fa";
 
-export default function Home() {
+// Revalidate every minute
+export const revalidate = 60;
+
+// Define the post type
+interface KDramaPost {
+  id: string;
+  title: string;
+  coverImage: string;
+  rating: number;
+  review: string;
+  status: string;
+  tags?: string[];
+  createdAt: string;
+}
+
+// Fetch the latest post
+async function getLatestPost(): Promise<KDramaPost | null> {
+  const postsQuery = query(
+    collection(db, "kdramas"),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
+
+  const snapshot = await getDocs(postsQuery);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const doc = snapshot.docs[0];
+  return { id: doc.id, ...doc.data() } as KDramaPost;
+}
+
+// Generate status badge with appropriate color
+function StatusBadge({ status }: { status: string }) {
+  let colorClass = "";
+
+  switch (status) {
+    case "Finalizado":
+      colorClass = "bg-green-100 text-green-800";
+      break;
+    case "Viendo":
+      colorClass = "bg-yellow-100 text-yellow-800";
+      break;
+    case "Abandonado":
+      colorClass = "bg-red-100 text-red-800";
+      break;
+    default:
+      colorClass = "bg-gray-100 text-gray-800";
+  }
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-sm ${colorClass}`}>
+      {status}
+    </span>
+  );
+}
+
+export default async function Home() {
+  const latestPost = await getLatestPost();
+
   return (
     <div className="min-h-screen flex flex-col">
+      <header className="bg-white border-b border-pink-100">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-[#ff8ba7]">My K-Diary</h1>
+          <Link href="/posts" className="text-[#ff8ba7] hover:underline">
+            Ver todos los K-dramas
+          </Link>
+        </div>
+      </header>
+
       <main className="flex-grow">
-        <div className="container mx-auto px-4 py-3 flex flex-col justify-center">
+        <div className="container mx-auto px-4 py-6">
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-center bg-gradient-to-br from-[#ff8ba7] via-[#ffc6c7] to-[#faeee7] text-transparent bg-clip-text animate-gradient pb-3 md:pb-6">
             My K-Diary
           </h1>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-center text-[#ff8ba7] mb-3 md:mb-6 underline">
-            A Virtuous Business
-          </h2>
 
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-3 lg:mt-6">
-            {/* Left Card: Image and Rating */}
-            <div className="lg:w-1/3 mx-auto lg:mx-0 max-w-xs lg:max-w-none lg:sticky lg:top-4 self-start bg-white/90 backdrop-blur-sm rounded-xl shadow-[0_20px_50px_rgba(255,183,197,0.3)] p-6 hover:shadow-[0_20px_50px_rgba(255,183,197,0.5)] transition-all duration-300 flex flex-col items-center border border-pink-100/50">
-              <Image
-                src="https://cdn-images.dzcdn.net/images/cover/5a15842b74960a45a40ad8a0fe2e39fe/0x1900-000000-80-0-0.jpg"
-                alt="A Virtuous Business Cover"
-                width={280}
-                height={420}
-                priority
-                className="rounded-lg shadow-md mb-4"
-              />
-              <div className="flex flex-col items-center gap-2 bg-white p-4 rounded-lg border-2 border-[#ff8ba7]/20 shadow-[0_4px_12px_rgba(255,139,167,0.1)]">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FaStar key={star} className="w-8 h-8 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="text-lg font-medium bg-gradient-to-r from-[#ff8ba7] to-[#ffc6c7] bg-clip-text text-transparent">
-                  4.5 de 5
-                </span>
-              </div>
-            </div>
+          {latestPost ? (
+            <>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium text-center text-[#ff8ba7] mb-8">
+                Último K-Drama: {latestPost.title}
+              </h2>
 
-            {/* Right Card: Review and Sections */}
-            <div className="lg:w-2/3 bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-2xl font-semibold text-[#ff8ba7] mb-4 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                Reseña sin spoilers:
-              </h3>
-              <p className="text-gray-700 mb-4 leading-relaxed">
-                A Virtuous Business cuenta la fascinante historia de Cheon
-                Da-hee, una joven talentosa que navega por el complejo mundo
-                corporativo de Corea mientras mantiene su integridad y valores.
-              </p>
-              <p className="text-gray-700 mb-4 leading-relaxed">
-                El drama equilibra magistralmente la dinámica laboral, el
-                romance y el crecimiento personal, ofreciendo una refrescante
-                perspectiva del género empresarial. La química entre los
-                protagonistas es excepcional, añadiendo profundidad a una trama
-                ya cautivadora.
-              </p>
-
-              <div className="grid gap-4">
-                {/* Where to Watch Section */}
-                <div className="border-t border-pink-100 pt-4">
-                  <h4 className="text-xl font-semibold text-[#ff8ba7] mb-3 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                    Dónde Ver:
-                  </h4>
-                  <div className="flex flex-wrap gap-3">
-                    <a
-                      href="https://www.netflix.com/title/81725482"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200"
-                    >
-                      <SiNetflix className="text-[#E50914] text-xl" />
-                      <span className="text-gray-700">Netflix</span>
-                    </a>
-
-                    <a
-                      href="https://www.primevideo.com/detail/A-Virtuous-Business/0KXQJ7FHCKB6T5MGJH8261DYZK"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200"
-                    >
-                      <SiPrimevideo className="text-[#00A8E1] text-xl" />
-                      <span className="text-gray-700">Prime Video</span>
-                    </a>
-
-                    <a
-                      href="https://www.viki.com/tv/45572c-a-business-proposal"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200"
-                    >
-                      <SiVk className="text-[#1D75E5] text-xl" />
-                      <span className="text-gray-700">Viki</span>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Korean Crush section */}
-                <div className="border-t border-pink-100 pt-4">
-                  <div className="flex items-center gap-4">
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Left card - Image and Rating */}
+                <div className="lg:w-1/3 mx-auto lg:mx-0 max-w-xs lg:max-w-none bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg flex flex-col items-center">
+                  <Link
+                    href={`/posts/${latestPost.id}`}
+                    className="block relative w-full h-[400px]"
+                  >
                     <Image
-                      src="https://images.mubicdn.net/images/cast_member/412650/cache-631190-1610355756/image-w856.jpg?size=300x"
-                      alt="Yeon Woo-jin"
-                      width={100}
-                      height={100}
-                      className="rounded-full object-cover shadow-md"
+                      src={latestPost.coverImage}
+                      alt={latestPost.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      style={{ objectFit: "cover" }}
+                      className="rounded-lg shadow-md hover:opacity-90 transition-opacity"
+                      priority
                     />
-                    <p className="text-xl font-medium text-[#ff8ba7] italic relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                      Crush Coreano:{" "}
-                      <span className="font-normal">Yeon Woo-jin</span>
+                  </Link>
+
+                  <div className="mt-6 text-center">
+                    <div className="flex justify-center space-x-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar
+                          key={i}
+                          className={
+                            i < Math.round(latestPost.rating)
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <p className="font-medium text-gray-700">
+                      {latestPost.rating} / 5
                     </p>
                   </div>
-                </div>
 
-                {/* Song Section */}
-                <div className="border-t border-pink-100 pt-4">
-                  <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 items-center gap-2 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                    <FaMusic className="text-2xl" />
-                    Para cantar a todo pulmón:
-                  </h4>
-                  <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-                    <div>
-                      <h5 className="font-medium text-gray-800">Beautiful</h5>
-                      <p className="text-gray-600 text-sm">Por Crush</p>
-                    </div>
-                    <a
-                      href="https://www.youtube.com/watch?v=W0cs6ciCt_k"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200"
-                    >
-                      <SiYoutube className="text-[#FF0000] text-xl" />
-                      <span className="text-gray-700">Escuchar</span>
-                    </a>
+                  <div className="mt-3">
+                    <StatusBadge status={latestPost.status} />
                   </div>
                 </div>
 
-                {/* Drama Status Section */}
-                <div className="border-t border-pink-100 pt-4">
-                  <h4 className="text-xl font-semibold text-[#ff8ba7] mb-3 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                    Estado:
-                  </h4>
-                  <StatusBadge status="Finalizado" />
-                </div>
+                {/* Right card - Content */}
+                <div className="lg:w-2/3 bg-white rounded-xl shadow-lg p-6">
+                  <div className="mb-6">
+                    <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
+                      Mi reseña
+                    </h2>
+                    <div className="prose prose-pink max-w-none">
+                      {/* Show truncated review */}
+                      <p className="line-clamp-6">{latestPost.review}</p>
+                    </div>
+                    <Link
+                      href={`/posts/${latestPost.id}`}
+                      className="inline-block mt-4 px-4 py-2 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors"
+                    >
+                      Leer más
+                    </Link>
+                  </div>
 
-                {/* Drama Mood Tags */}
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {["Romántico", "Corporativo", "Slice of Life", "Comedia"].map(
-                    (tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 rounded-full text-sm bg-pink-50 text-[#ff8ba7] border border-pink-100"
-                      >
-                        {tag}
-                      </span>
-                    )
+                  {/* Tags */}
+                  {latestPost.tags && latestPost.tags.length > 0 && (
+                    <div className="mt-6">
+                      <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
+                        Etiquetas
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {latestPost.tags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-pink-50 text-[#ff8ba7] rounded-full text-sm"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-
-                {/* Favorite Quotes Section */}
-                <div className="border-t border-pink-100 pt-4">
-                  <h4 className="text-xl font-semibold text-[#ff8ba7] mb-3 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
-                    Frase Favorita:
-                  </h4>
-                  <blockquote className="italic text-gray-700 border-l-4 border-[#ff8ba7] pl-4">
-                    &quot;El éxito no se trata de dinero, sino de mantener tu
-                    integridad.&quot;
-                  </blockquote>
-                </div>
               </div>
+
+              <div className="mt-12 text-center">
+                <Link
+                  href="/posts"
+                  className="px-6 py-3 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors text-lg"
+                >
+                  Ver toda mi colección de K-dramas
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-6">
+                Aún no hay K-dramas en la colección.
+              </p>
+              <Link
+                href="/admin/login"
+                className="px-4 py-2 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors"
+              >
+                Iniciar sesión como administrador
+              </Link>
             </div>
-          </div>
+          )}
         </div>
       </main>
 
-      <footer className="bg-white py-3 border-t border-pink-100">
+      <footer className="bg-white py-4 border-t border-pink-100">
         <div className="container mx-auto px-4">
           <p className="text-center text-[#ff8ba7] text-sm">
             Hecho con 💖 para mi fan favorita de doramas
