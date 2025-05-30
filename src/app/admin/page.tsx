@@ -4,16 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
-
-type KDramaPost = {
-  id: string;
-  title: string;
-  status: string;
-  rating: number;
-  createdAt: string;
-};
+import { KDramaPost } from "@/lib/posts";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
@@ -28,31 +19,18 @@ export default function AdminDashboard() {
     }
   }, [status, router]);
 
-  // Fetch posts
+  // Fetch posts from markdown files
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const querySnapshot = await getDocs(collection(db, "kdramas"));
-        const postsData: KDramaPost[] = [];
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          postsData.push({
-            id: doc.id,
-            title: data.title,
-            status: data.status,
-            rating: data.rating,
-            createdAt: data.createdAt,
-          });
-        });
-
-        // Sort by date, newest first
-        postsData.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-
-        setPosts(postsData);
+        // Since getAllPostsData is a server function, we need to call it via API
+        const response = await fetch("/api/posts");
+        if (response.ok) {
+          const postsData = await response.json();
+          setPosts(postsData);
+        } else {
+          console.error("Error fetching posts:", response.statusText);
+        }
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
@@ -129,6 +107,7 @@ export default function AdminDashboard() {
                       <th className="p-3 text-left text-gray-700">Estado</th>
                       <th className="p-3 text-left text-gray-700">Rating</th>
                       <th className="p-3 text-left text-gray-700">Fecha</th>
+                      <th className="p-3 text-left text-gray-700">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -137,7 +116,7 @@ export default function AdminDashboard() {
                         key={post.id}
                         className="border-b border-gray-100 hover:bg-gray-50"
                       >
-                        <td className="p-3">{post.title}</td>
+                        <td className="p-3 font-medium">{post.title}</td>
                         <td className="p-3">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
@@ -154,6 +133,22 @@ export default function AdminDashboard() {
                         <td className="p-3">{post.rating} / 5</td>
                         <td className="p-3">
                           {new Date(post.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <Link
+                              href={`/posts/${post.id}`}
+                              className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-sm transition-colors"
+                            >
+                              Ver
+                            </Link>
+                            <Link
+                              href={`/admin/edit/${post.id}`}
+                              className="px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded text-sm transition-colors"
+                            >
+                              Editar
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -182,17 +182,61 @@ export async function updatePost(
     updatedAt: new Date().toISOString(),
   };
 
-  // Remove content and review from frontmatter data
-  const { ...frontmatterData } = updatedData;
+  // Remove content and review from frontmatter data since review goes in content
+  const { content, ...frontmatterData } = updatedData;
 
-  // Create new frontmatter
-  const newContent = matter.stringify(
-    postData.review || matterResult.content,
-    frontmatterData
-  );
+  // Create frontmatter string
+  const frontmatter = `---
+title: "${frontmatterData.title}"
+coverImage: "${frontmatterData.coverImage}"
+rating: ${frontmatterData.rating}
+status: "${frontmatterData.status}"
+tags: [${frontmatterData.tags.map((tag: string) => `"${tag}"`).join(", ")}]
+${
+  frontmatterData.favoriteQuote
+    ? `favoriteQuote: "${frontmatterData.favoriteQuote}"`
+    : ""
+}
+createdAt: "${frontmatterData.createdAt}"
+updatedAt: "${frontmatterData.updatedAt}"
+${
+  frontmatterData.whereToWatch
+    ? `whereToWatch:
+${frontmatterData.whereToWatch
+  .map(
+    (platform: any) => `  - platform: "${platform.platform}"
+    url: "${platform.url}"
+    icon: "${platform.icon}"`
+  )
+  .join("\n")}`
+    : ""
+}
+${
+  frontmatterData.koreanCrush
+    ? `koreanCrush:
+  name: "${frontmatterData.koreanCrush.name}"
+  ${
+    frontmatterData.koreanCrush.image
+      ? `image: "${frontmatterData.koreanCrush.image}"`
+      : ""
+  }`
+    : ""
+}
+${
+  frontmatterData.song
+    ? `song:
+  title: "${frontmatterData.song.title}"
+  artist: "${frontmatterData.song.artist}"
+  youtubeUrl: "${frontmatterData.song.youtubeUrl}"`
+    : ""
+}
+---
+
+${postData.review || matterResult.content}
+`;
 
   // Write the file
-  fs.writeFileSync(fullPath, newContent);
+  fs.writeFileSync(fullPath, frontmatter);
 }
 
 // Delete a post

@@ -3,24 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { KDramaPost } from "@/lib/posts";
 
-export default function KDramaForm() {
+interface KDramaFormProps {
+  initialData?: KDramaPost;
+  isEditing?: boolean;
+  postId?: string;
+}
+
+export default function KDramaForm({
+  initialData,
+  isEditing = false,
+  postId,
+}: KDramaFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  // Initialize form data with either initialData or default values
   const [formData, setFormData] = useState({
-    title: "",
-    coverImage: "",
-    rating: 5,
-    review: "",
-    status: "Viendo",
-    tags: ["Romántico"],
-    favoriteQuote: "",
-    whereToWatch: [{ platform: "Netflix", url: "", icon: "netflix" }],
-    koreanCrush: {
+    title: initialData?.title || "",
+    coverImage: initialData?.coverImage || "",
+    rating: initialData?.rating || 5,
+    review: initialData?.review || "",
+    status: initialData?.status || "Viendo",
+    tags: initialData?.tags || ["Romántico"],
+    favoriteQuote: initialData?.favoriteQuote || "",
+    whereToWatch: initialData?.whereToWatch || [
+      { platform: "Netflix", url: "", icon: "netflix" },
+    ],
+    koreanCrush: initialData?.koreanCrush || {
       name: "",
       image: "",
     },
-    song: {
+    song: initialData?.song || {
       title: "",
       artist: "",
       youtubeUrl: "",
@@ -35,15 +50,18 @@ export default function KDramaForm() {
     try {
       const postData = {
         ...formData,
-        createdAt: new Date().toISOString(),
+        createdAt: initialData?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       console.log("Saving data:", postData);
 
-      // Send to API route to create markdown file
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const url = isEditing ? `/api/posts/${postId}` : "/api/posts";
+      const method = isEditing ? "PUT" : "POST";
+
+      // Send to API route
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -51,18 +69,28 @@ export default function KDramaForm() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create post");
+        throw new Error(`Failed to ${isEditing ? "update" : "create"} post`);
       }
 
       const result = await response.json();
-      console.log("Post created with ID: ", result.id);
+      console.log(
+        `Post ${isEditing ? "updated" : "created"} with ID: `,
+        result.id
+      );
 
       // Redirect to admin page
       router.push("/admin");
       router.refresh();
     } catch (error) {
-      console.error("Error creating post: ", error);
-      alert("Error creating post. Check console for details.");
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} post: `,
+        error
+      );
+      alert(
+        `Error ${
+          isEditing ? "updating" : "creating"
+        } post. Check console for details.`
+      );
     } finally {
       setLoading(false);
     }
@@ -479,7 +507,13 @@ export default function KDramaForm() {
           disabled={loading}
           className="px-6 py-3 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors disabled:bg-gray-400 text-lg font-medium"
         >
-          {loading ? "Guardando..." : "Crear K-Drama"}
+          {loading
+            ? isEditing
+              ? "Actualizando..."
+              : "Guardando..."
+            : isEditing
+            ? "Actualizar K-Drama"
+            : "Crear K-Drama"}
         </button>
       </div>
     </form>
