@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { db } from "@/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
 
 export default function KDramaForm() {
   const router = useRouter();
@@ -43,15 +41,27 @@ export default function KDramaForm() {
 
       console.log("Saving data:", postData);
 
-      // Add document to Firestore
-      const docRef = await addDoc(collection(db, "kdramas"), postData);
-      console.log("Document written with ID: ", docRef.id);
+      // Send to API route to create markdown file
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create post");
+      }
+
+      const result = await response.json();
+      console.log("Post created with ID: ", result.id);
 
       // Redirect to admin page
       router.push("/admin");
       router.refresh();
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error creating post: ", error);
       alert("Error creating post. Check console for details.");
     } finally {
       setLoading(false);

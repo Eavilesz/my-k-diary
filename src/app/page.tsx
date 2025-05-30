@@ -1,66 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { FaStar } from "react-icons/fa";
-
-// Revalidate every minute
-export const revalidate = 60;
-
-// Define the post type
-interface KDramaPost {
-  id: string;
-  title: string;
-  coverImage: string;
-  rating: number;
-  review: string;
-  status: string;
-  tags?: string[];
-  createdAt: string;
-}
-
-// Fetch the latest post
-async function getLatestPost(): Promise<KDramaPost | null> {
-  const postsQuery = query(
-    collection(db, "kdramas"),
-    orderBy("createdAt", "desc"),
-    limit(1)
-  );
-
-  const snapshot = await getDocs(postsQuery);
-
-  if (snapshot.empty) {
-    return null;
-  }
-
-  const doc = snapshot.docs[0];
-  return { id: doc.id, ...doc.data() } as KDramaPost;
-}
-
-// Generate status badge with appropriate color
-function StatusBadge({ status }: { status: string }) {
-  let colorClass = "";
-
-  switch (status) {
-    case "Finalizado":
-      colorClass = "bg-green-100 text-green-800";
-      break;
-    case "Viendo":
-      colorClass = "bg-yellow-100 text-yellow-800";
-      break;
-    case "Abandonado":
-      colorClass = "bg-red-100 text-red-800";
-      break;
-    default:
-      colorClass = "bg-gray-100 text-gray-800";
-  }
-
-  return (
-    <span className={`px-3 py-1 rounded-full text-sm ${colorClass}`}>
-      {status}
-    </span>
-  );
-}
+import { getLatestPost } from "@/lib/posts";
+import StatusBadge from "@/components/StatusBadge";
 
 export default async function Home() {
   const latestPost = await getLatestPost();

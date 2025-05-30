@@ -1,43 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { FaStar } from "react-icons/fa";
+import { getAllPostsData } from "@/lib/posts";
 
-// Tells Next.js to revalidate this data every minute
-export const revalidate = 60;
-
-// Define the post type
-interface KDramaPost {
-  id: string;
-  title: string;
-  coverImage: string;
-  rating: number;
-  status: string;
-  createdAt: string;
-}
-
-// Server component to fetch and display posts
 export default async function PostsPage() {
-  // Fetch posts from Firestore
-  const postsQuery = query(
-    collection(db, "kdramas"),
-    orderBy("createdAt", "desc")
-  );
-  const snapshot = await getDocs(postsQuery);
-
-  // Convert to array of posts
-  const posts: KDramaPost[] = [];
-  snapshot.forEach((doc) => {
-    posts.push({
-      id: doc.id,
-      title: doc.data().title,
-      coverImage: doc.data().coverImage,
-      rating: doc.data().rating,
-      status: doc.data().status,
-      createdAt: doc.data().createdAt,
-    });
-  });
+  const posts = await getAllPostsData();
 
   return (
     <div className="min-h-screen flex flex-col">

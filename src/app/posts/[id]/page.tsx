@@ -1,43 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { getPostData, getAllPostIds, postExists } from "@/lib/posts";
+import { FaStar, FaMusic } from "react-icons/fa";
 import { SiNetflix, SiPrimevideo, SiVk, SiYoutube } from "react-icons/si";
-import { FaMusic, FaStar } from "react-icons/fa";
 import StatusBadge from "@/components/StatusBadge";
 
-// Revalidate every minute
-export const revalidate = 60;
-
-// Define a type for the post
-interface KDramaPost {
-  id: string;
-  title: string;
-  coverImage: string;
-  rating: number;
-  review: string;
-  status: string;
-  tags: string[];
-  favoriteQuote?: string;
-  createdAt: string;
-  whereToWatch?: Array<{
-    platform: string;
-    url: string;
-    icon: string;
-  }>;
-  koreanCrush?: {
-    name: string;
-    image?: string;
-  };
-  song?: {
-    title: string;
-    artist: string;
-    youtubeUrl: string;
-  };
+export async function generateStaticParams() {
+  const paths = getAllPostIds();
+  return paths.map((path) => ({
+    id: path.params.id,
+  }));
 }
 
-// Get the platform icon based on the string name
 function getPlatformIcon(platform: string) {
   switch (platform.toLowerCase()) {
     case "netflix":
@@ -54,28 +29,18 @@ function getPlatformIcon(platform: string) {
   }
 }
 
-// Fetch post data from Firestore
-async function getPostData(id: string): Promise<KDramaPost | null> {
-  const docRef = doc(db, "kdramas", id);
-  const docSnap = await getDoc(docRef);
+export default async function PostPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-  if (docSnap.exists()) {
-    return {
-      id: docSnap.id,
-      ...docSnap.data(),
-    } as KDramaPost;
-  } else {
-    return null;
-  }
-}
-
-// Main component
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const post = await getPostData(params.id);
-
-  if (!post) {
+  if (!postExists(id)) {
     notFound();
   }
+
+  const post = await getPostData(id);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -134,11 +99,12 @@ export default async function PostPage({ params }: { params: { id: string } }) {
               <h3 className="text-2xl font-semibold text-[#ff8ba7] mb-4 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
                 Reseña sin spoilers:
               </h3>
-              {post.review.split("\n").map((paragraph, i) => (
-                <p key={i} className="text-gray-700 mb-4 leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
+
+              {/* Render the markdown content as HTML */}
+              <div
+                className="prose prose-gray max-w-none mb-6"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
 
               <div className="grid gap-4">
                 {/* Where to Watch Section */}
@@ -192,7 +158,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
                 {/* Song Section */}
                 {post.song && (
                   <div className="border-t border-pink-100 pt-4">
-                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 items-center gap-2 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
+                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 flex items-center gap-2 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
                       <FaMusic className="text-2xl" />
                       Para cantar a todo pulmón:
                     </h4>
