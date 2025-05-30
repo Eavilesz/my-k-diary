@@ -3,13 +3,37 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { KDramaPost } from "@/lib/posts";
+import { KDramaPost, Status } from "@/lib/posts"; // Add Status import
 
 interface KDramaFormProps {
   initialData?: KDramaPost;
   isEditing?: boolean;
   postId?: string;
 }
+
+// Define the available platforms with their data (remove baseUrl since we don't use URLs)
+const AVAILABLE_PLATFORMS = {
+  netflix: {
+    platform: "Netflix",
+    icon: "netflix",
+  },
+  primevideo: {
+    platform: "Prime Video",
+    icon: "primevideo",
+  },
+  viki: {
+    platform: "Viki",
+    icon: "viki",
+  },
+  youtube: {
+    platform: "YouTube",
+    icon: "youtube",
+  },
+  other: {
+    platform: "Otro",
+    icon: "other",
+  },
+};
 
 export default function KDramaForm({
   initialData,
@@ -25,12 +49,10 @@ export default function KDramaForm({
     coverImage: initialData?.coverImage || "",
     rating: initialData?.rating || 5,
     review: initialData?.review || "",
-    status: initialData?.status || "Viendo",
+    status: (initialData?.status || "Viendo") as Status, // Cast to Status type
     tags: initialData?.tags || ["Romántico"],
     favoriteQuote: initialData?.favoriteQuote || "",
-    whereToWatch: initialData?.whereToWatch || [
-      { platform: "Netflix", url: "", icon: "netflix" },
-    ],
+    whereToWatch: initialData?.whereToWatch || [],
     koreanCrush: initialData?.koreanCrush || {
       name: "",
       image: "",
@@ -96,14 +118,25 @@ export default function KDramaForm({
     }
   }
 
-  // Add platform
-  const addPlatform = () => {
+  // Add platform (simplified - no URL needed)
+  const addPlatform = (platformKey: string) => {
+    const platformData =
+      AVAILABLE_PLATFORMS[platformKey as keyof typeof AVAILABLE_PLATFORMS];
+
+    // Check if platform already exists
+    const exists = formData.whereToWatch.some(
+      (p) => p.icon === platformData.icon
+    );
+    if (exists) return;
+
+    const newPlatform = {
+      platform: platformData.platform,
+      icon: platformData.icon,
+    };
+
     setFormData({
       ...formData,
-      whereToWatch: [
-        ...formData.whereToWatch,
-        { platform: "Netflix", url: "", icon: "netflix" },
-      ],
+      whereToWatch: [...formData.whereToWatch, newPlatform],
     });
   };
 
@@ -111,19 +144,6 @@ export default function KDramaForm({
   const removePlatform = (index: number) => {
     const updatedPlatforms = [...formData.whereToWatch];
     updatedPlatforms.splice(index, 1);
-    setFormData({
-      ...formData,
-      whereToWatch: updatedPlatforms,
-    });
-  };
-
-  // Update platform field
-  const updatePlatform = (index: number, field: string, value: string) => {
-    const updatedPlatforms = [...formData.whereToWatch];
-    updatedPlatforms[index] = {
-      ...updatedPlatforms[index],
-      [field]: value,
-    };
     setFormData({
       ...formData,
       whereToWatch: updatedPlatforms,
@@ -222,13 +242,13 @@ export default function KDramaForm({
           </div>
         </div>
 
-        {/* Status selector */}
+        {/* Status selector - FIXED */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">Estado</label>
           <select
             value={formData.status}
             onChange={(e) =>
-              setFormData({ ...formData, status: e.target.value })
+              setFormData({ ...formData, status: e.target.value as Status })
             }
             className="w-full rounded-md border border-gray-300 p-2"
           >
@@ -303,76 +323,78 @@ export default function KDramaForm({
         </div>
       </div>
 
-      {/* Where to Watch Section */}
+      {/* Where to Watch Section - SIMPLIFIED */}
       <div className="bg-white p-6 rounded-lg shadow-md border border-pink-100/50">
         <h3 className="text-xl font-semibold text-[#ff8ba7] mb-4">Dónde Ver</h3>
 
-        {formData.whereToWatch.map((platform, index) => (
-          <div
-            key={index}
-            className="mb-4 p-4 border border-gray-100 rounded-lg"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium">Plataforma #{index + 1}</h4>
-              <button
-                type="button"
-                onClick={() => removePlatform(index)}
-                className="text-red-500 hover:text-red-700"
-              >
-                Eliminar
-              </button>
-            </div>
-
-            {/* Platform name */}
-            <div className="mb-2">
-              <label className="block text-sm text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={platform.platform}
-                onChange={(e) =>
-                  updatePlatform(index, "platform", e.target.value)
-                }
-                className="w-full rounded-md border border-gray-300 p-2"
-                placeholder="Netflix"
-              />
-            </div>
-
-            {/* Platform URL */}
-            <div className="mb-2">
-              <label className="block text-sm text-gray-700 mb-1">URL</label>
-              <input
-                type="url"
-                value={platform.url}
-                onChange={(e) => updatePlatform(index, "url", e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2"
-                placeholder="https://www.netflix.com/title/123456"
-              />
-            </div>
-
-            {/* Platform icon */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Icono</label>
-              <select
-                value={platform.icon}
-                onChange={(e) => updatePlatform(index, "icon", e.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2"
-              >
-                <option value="netflix">Netflix</option>
-                <option value="primevideo">Prime Video</option>
-                <option value="viki">Viki</option>
-                <option value="youtube">YouTube</option>
-              </select>
+        {/* Selected Platforms */}
+        {formData.whereToWatch.length > 0 && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              {formData.whereToWatch.map((platform, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border"
+                >
+                  <span className="font-medium">{platform.platform}</span>
+                  <button
+                    type="button"
+                    onClick={() => removePlatform(index)}
+                    className="text-red-500 hover:text-red-700 font-medium text-sm ml-1"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        )}
 
-        <button
-          type="button"
-          onClick={addPlatform}
-          className="text-[#ff8ba7] hover:text-[#ff7b9c] font-medium"
-        >
-          + Añadir plataforma
-        </button>
+        {/* Add Platform Dropdown */}
+        <div className="flex items-center gap-3">
+          <select
+            id="platformSelect"
+            className="rounded-md border border-gray-300 p-2"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Seleccionar plataforma
+            </option>
+            {Object.entries(AVAILABLE_PLATFORMS).map(([key, platform]) => {
+              const isAlreadyAdded = formData.whereToWatch.some(
+                (p) => p.icon === platform.icon
+              );
+              return (
+                <option key={key} value={key} disabled={isAlreadyAdded}>
+                  {platform.platform} {isAlreadyAdded ? "(ya agregado)" : ""}
+                </option>
+              );
+            })}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => {
+              const select = document.getElementById(
+                "platformSelect"
+              ) as HTMLSelectElement;
+              if (select.value) {
+                addPlatform(select.value);
+                select.value = ""; // Reset selection
+              }
+            }}
+            className="px-4 py-2 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors"
+          >
+            Añadir
+          </button>
+        </div>
+
+        {formData.whereToWatch.length === 0 && (
+          <p className="text-gray-500 italic text-sm mt-2">
+            No se han agregado plataformas aún. Selecciona una plataforma
+            arriba.
+          </p>
+        )}
       </div>
 
       {/* Korean Crush Section */}

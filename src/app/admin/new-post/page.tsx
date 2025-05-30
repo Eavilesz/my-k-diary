@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 
 export default function NewPostPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   // Redirect if not authenticated

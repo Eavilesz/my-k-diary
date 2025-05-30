@@ -1,35 +1,30 @@
-import { FaCheckCircle, FaPlayCircle, FaStopCircle } from "react-icons/fa";
-
-type Status = "Viendo" | "Finalizado" | "Abandonado";
+import { Status } from "@/lib/posts";
 
 interface StatusBadgeProps {
   status: Status;
 }
 
-const statusConfig = {
-  Viendo: {
-    icon: FaPlayCircle,
-    color: "text-[#ff8ba7]",
-  },
-  Finalizado: {
-    icon: FaCheckCircle,
-    color: "text-[#ff8ba7]",
-  },
-  Abandonado: {
-    icon: FaStopCircle,
-    color: "text-[#ff8ba7]",
-  },
-};
-
-const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const { icon: Icon, color } = statusConfig[status];
+export default function StatusBadge({ status }: StatusBadgeProps) {
+  const getStatusStyle = (status: Status) => {
+    switch (status) {
+      case "Finalizado":
+        return "bg-green-100 text-green-700";
+      case "Viendo":
+        return "bg-yellow-100 text-yellow-700";
+      case "Abandonado":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
 
   return (
-    <div className="flex items-center gap-2 text-lg">
-      <Icon className={`${color} text-xl`} />
-      <span className="text-gray-700">{status}</span>
-    </div>
+    <span
+      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(
+        status
+      )}`}
+    >
+      {status}
+    </span>
   );
-};
-
-export default StatusBadge;
+}

@@ -6,6 +6,7 @@ import { FaStar, FaMusic } from "react-icons/fa";
 import { SiNetflix, SiPrimevideo, SiVk, SiYoutube } from "react-icons/si";
 import StatusBadge from "@/components/StatusBadge";
 
+// Generate static params for all posts
 export async function generateStaticParams() {
   const paths = getAllPostIds();
   return paths.map((path) => ({
@@ -13,6 +14,7 @@ export async function generateStaticParams() {
   }));
 }
 
+// Get the platform icon based on the string name
 function getPlatformIcon(platform: string) {
   switch (platform.toLowerCase()) {
     case "netflix":
@@ -29,6 +31,7 @@ function getPlatformIcon(platform: string) {
   }
 }
 
+// Main component
 export default async function PostPage({
   params,
 }: {
@@ -107,7 +110,7 @@ export default async function PostPage({
               />
 
               <div className="grid gap-4">
-                {/* Where to Watch Section */}
+                {/* Where to Watch Section - UPDATED */}
                 {post.whereToWatch && post.whereToWatch.length > 0 && (
                   <div className="border-t border-pink-100 pt-4">
                     <h4 className="text-xl font-semibold text-[#ff8ba7] mb-3 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
@@ -115,18 +118,15 @@ export default async function PostPage({
                     </h4>
                     <div className="flex flex-wrap gap-3">
                       {post.whereToWatch.map((platform, index) => (
-                        <a
+                        <div
                           key={index}
-                          href={platform.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200"
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full"
                         >
                           {getPlatformIcon(platform.icon)}
                           <span className="text-gray-700">
                             {platform.platform}
                           </span>
-                        </a>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default async function PostPage({
                 {/* Song Section */}
                 {post.song && (
                   <div className="border-t border-pink-100 pt-4">
-                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 flex items-center gap-2 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
+                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 flex items-center gap-2 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
                       <FaMusic className="text-2xl" />
                       Para cantar a todo pulmón:
                     </h4>

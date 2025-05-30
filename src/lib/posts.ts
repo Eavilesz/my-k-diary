@@ -6,20 +6,22 @@ import html from "remark-html";
 
 const postsDirectory = path.join(process.cwd(), "src/content/posts");
 
+// Define the allowed status values
+export type Status = "Viendo" | "Finalizado" | "Abandonado";
+
 export interface KDramaPost {
   id: string;
   title: string;
   coverImage: string;
   rating: number;
   review: string;
-  status: string;
+  status: Status; // Changed from string to Status type
   tags: string[];
   favoriteQuote?: string;
   createdAt: string;
   updatedAt: string;
   whereToWatch?: Array<{
     platform: string;
-    url: string;
     icon: string;
   }>;
   koreanCrush?: {
@@ -33,6 +35,12 @@ export interface KDramaPost {
   };
   content: string;
 }
+
+// Define the platform type for better type safety
+type Platform = {
+  platform: string;
+  icon: string;
+};
 
 // Get all post IDs for static generation
 export function getAllPostIds() {
@@ -114,37 +122,36 @@ export async function createPost(
   const id = `${slug}-${Date.now()}`;
   const fullPath = path.join(postsDirectory, `${id}.md`);
 
-  // Create frontmatter
+  // Create frontmatter with proper null checks
   const frontmatter = `---
 title: "${postData.title}"
 coverImage: "${postData.coverImage}"
 rating: ${postData.rating}
 status: "${postData.status}"
-tags: [${postData.tags.map((tag) => `"${tag}"`).join(", ")}]
+tags: [${(postData.tags || []).map((tag) => `"${tag}"`).join(", ")}]
 ${postData.favoriteQuote ? `favoriteQuote: "${postData.favoriteQuote}"` : ""}
 createdAt: "${postData.createdAt}"
 updatedAt: "${postData.updatedAt}"
 ${
-  postData.whereToWatch
+  postData.whereToWatch && postData.whereToWatch.length > 0
     ? `whereToWatch:
 ${postData.whereToWatch
   .map(
     (platform) => `  - platform: "${platform.platform}"
-    url: "${platform.url}"
     icon: "${platform.icon}"`
   )
   .join("\n")}`
     : ""
 }
 ${
-  postData.koreanCrush
+  postData.koreanCrush && postData.koreanCrush.name
     ? `koreanCrush:
   name: "${postData.koreanCrush.name}"
   ${postData.koreanCrush.image ? `image: "${postData.koreanCrush.image}"` : ""}`
     : ""
 }
 ${
-  postData.song
+  postData.song && postData.song.title
     ? `song:
   title: "${postData.song.title}"
   artist: "${postData.song.artist}"
@@ -183,36 +190,37 @@ export async function updatePost(
   };
 
   // Remove content and review from frontmatter data since review goes in content
-  const { content, ...frontmatterData } = updatedData;
+  const { ...frontmatterData } = updatedData;
 
-  // Create frontmatter string
+  // Create frontmatter string with proper null checks
   const frontmatter = `---
-title: "${frontmatterData.title}"
-coverImage: "${frontmatterData.coverImage}"
-rating: ${frontmatterData.rating}
-status: "${frontmatterData.status}"
-tags: [${frontmatterData.tags.map((tag: string) => `"${tag}"`).join(", ")}]
+title: "${frontmatterData.title || ""}"
+coverImage: "${frontmatterData.coverImage || ""}"
+rating: ${frontmatterData.rating || 5}
+status: "${frontmatterData.status || "Viendo"}"
+tags: [${(frontmatterData.tags || [])
+    .map((tag: string) => `"${tag}"`)
+    .join(", ")}]
 ${
   frontmatterData.favoriteQuote
     ? `favoriteQuote: "${frontmatterData.favoriteQuote}"`
     : ""
 }
-createdAt: "${frontmatterData.createdAt}"
-updatedAt: "${frontmatterData.updatedAt}"
+createdAt: "${frontmatterData.createdAt || new Date().toISOString()}"
+updatedAt: "${frontmatterData.updatedAt || new Date().toISOString()}"
 ${
-  frontmatterData.whereToWatch
+  frontmatterData.whereToWatch && frontmatterData.whereToWatch.length > 0
     ? `whereToWatch:
 ${frontmatterData.whereToWatch
   .map(
-    (platform: any) => `  - platform: "${platform.platform}"
-    url: "${platform.url}"
+    (platform: Platform) => `  - platform: "${platform.platform}"
     icon: "${platform.icon}"`
   )
   .join("\n")}`
     : ""
 }
 ${
-  frontmatterData.koreanCrush
+  frontmatterData.koreanCrush && frontmatterData.koreanCrush.name
     ? `koreanCrush:
   name: "${frontmatterData.koreanCrush.name}"
   ${
@@ -223,7 +231,7 @@ ${
     : ""
 }
 ${
-  frontmatterData.song
+  frontmatterData.song && frontmatterData.song.title
     ? `song:
   title: "${frontmatterData.song.title}"
   artist: "${frontmatterData.song.artist}"

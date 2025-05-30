@@ -2,11 +2,11 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FcGoogle } from "react-icons/fc"; // Import Google icon
-import { useEffect } from "react";
+import { FcGoogle } from "react-icons/fc";
+import { useEffect, Suspense } from "react";
 
-export default function LoginPage() {
-  const { data: session, status } = useSession();
+function LoginPageContent() {
+  const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get("callbackUrl") || "/admin";
@@ -52,5 +52,21 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function LoginPageFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ff8ba7]"></div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginPageFallback />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

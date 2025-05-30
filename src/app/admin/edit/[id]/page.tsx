@@ -12,7 +12,7 @@ export default function EditPostPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession(); // Only using status for authentication checks
   const router = useRouter();
   const [post, setPost] = useState<KDramaPost | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function EditPostPage({
   }, [status, id, router]);
 
   // Show loading state
-  if (status === "loading" || loading) {
+  if (status === "loading" || (status === "authenticated" && loading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ff8ba7]"></div>
