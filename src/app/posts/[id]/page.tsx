@@ -5,6 +5,7 @@ import { getPostData, getAllPostIds, postExists } from "@/lib/posts";
 import { FaStar, FaMusic } from "react-icons/fa";
 import { SiNetflix, SiPrimevideo, SiVk, SiYoutube } from "react-icons/si";
 import StatusBadge from "@/components/StatusBadge";
+import Header from "@/components/Header";
 
 // Generate static params for all posts
 export async function generateStaticParams() {
@@ -47,16 +48,7 @@ export default async function PostPage({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-pink-100">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#ff8ba7]">
-            My K-Diary
-          </Link>
-          <Link href="/posts" className="text-[#ff8ba7] hover:underline">
-            Ver todos los K-dramas
-          </Link>
-        </div>
-      </header>
+      <Header showBackToHomeLink={true} />
 
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-3 flex flex-col justify-center">
@@ -110,7 +102,7 @@ export default async function PostPage({
               />
 
               <div className="grid gap-4">
-                {/* Where to Watch Section - UPDATED */}
+                {/* Where to Watch Section */}
                 {post.whereToWatch && post.whereToWatch.length > 0 && (
                   <div className="border-t border-pink-100 pt-4">
                     <h4 className="text-xl font-semibold text-[#ff8ba7] mb-3 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">

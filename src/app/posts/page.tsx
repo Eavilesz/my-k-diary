@@ -2,19 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaStar } from "react-icons/fa";
 import { getAllPostsData } from "@/lib/posts";
+import Header from "@/components/Header";
 
 export default async function PostsPage() {
   const posts = await getAllPostsData();
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-pink-100">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#ff8ba7]">
-            My K-Diary
-          </Link>
-        </div>
-      </header>
+      <Header showBackToHomeLink={true} showAllPostsLink={false} />
 
       <main className="flex-grow container mx-auto px-4 py-6">
         <h1 className="text-4xl font-bold text-[#ff8ba7] mb-8 text-center">

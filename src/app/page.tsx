@@ -3,28 +3,14 @@ import Image from "next/image";
 import { FaStar } from "react-icons/fa";
 import { getLatestPost } from "@/lib/posts";
 import StatusBadge from "@/components/StatusBadge";
+import Header from "@/components/Header";
 
 export default async function Home() {
   const latestPost = await getLatestPost();
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-pink-100">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-[#ff8ba7]">My K-Diary</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/posts" className="text-[#ff8ba7] hover:underline">
-              Ver todos los K-dramas
-            </Link>
-            <Link
-              href="/admin"
-              className="px-3 py-1 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md transition-colors text-sm"
-            >
-              Admin
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-6">
@@ -68,14 +54,12 @@ export default async function Home() {
                   </div>
                 </div>
 
-                {/* Right card - Content remains the same */}
                 <div className="lg:w-1/2 bg-white rounded-xl shadow-lg p-6">
                   <div className="mb-6">
                     <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
                       Mi reseña
                     </h2>
                     <div className="prose prose-pink max-w-none">
-                      {/* Show truncated review */}
                       <p className="line-clamp-6">{latestPost.review}</p>
                     </div>
                     <Link
@@ -86,7 +70,6 @@ export default async function Home() {
                     </Link>
                   </div>
 
-                  {/* Tags */}
                   {latestPost.tags && latestPost.tags.length > 0 && (
                     <div className="mt-6">
                       <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
