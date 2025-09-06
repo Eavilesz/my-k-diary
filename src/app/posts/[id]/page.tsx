@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostData, getAllPostIds, postExists } from "@/lib/posts";
 import { FaStar, FaMusic } from "react-icons/fa";
