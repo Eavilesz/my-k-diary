@@ -1,17 +1,34 @@
 import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (
+          credentials?.username === process.env.ADMIN_USERNAME &&
+          credentials?.password === process.env.ADMIN_PASSWORD
+        ) {
+          return {
+            id: "1",
+            name: "Admin",
+            email: "admin@kdiary.com",
+            isAdmin: true,
+          };
+        }
+        return null;
+      }
+    })
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.isAdmin = user.email === process.env.ADMIN_EMAIL;
+        token.isAdmin = true;
       }
       return token;
     },
