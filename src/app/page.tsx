@@ -39,48 +39,37 @@ export default async function Home() {
               </h2>
 
               <div className="flex flex-col lg:flex-row gap-8">
-                {/* Left card - Image and Rating */}
-                <div className="lg:w-1/3 mx-auto lg:mx-0 max-w-xs lg:max-w-none bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg flex flex-col items-center">
-                  <Link
-                    href={`/posts/${latestPost.id}`}
-                    className="block relative w-full h-[400px]"
-                  >
-                    <Image
-                      src={latestPost.coverImage}
-                      alt={latestPost.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      style={{ objectFit: "cover" }}
-                      className="rounded-lg shadow-md hover:opacity-90 transition-opacity"
-                      priority
-                    />
-                  </Link>
+                <div className="lg:w-1/2 mx-auto lg:mx-0 max-w-md lg:max-w-none lg:sticky lg:top-4 self-start bg-white/90 backdrop-blur-sm rounded-xl shadow-[0_20px_50px_rgba(255,183,197,0.3)] p-6 hover:shadow-[0_20px_50px_rgba(255,183,197,0.5)] transition-all duration-300 flex flex-col items-center border border-pink-100/50">
+                  <Image
+                    src={latestPost.coverImage}
+                    alt={`${latestPost.title} Cover`}
+                    width={280}
+                    height={420}
+                    priority
+                    className="rounded-lg shadow-md mb-4"
+                  />
 
-                  <div className="mt-6 text-center">
-                    <div className="flex justify-center space-x-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
+                  <div className="flex flex-col items-center gap-2 bg-white p-4 rounded-lg border-2 border-[#ff8ba7]/20 shadow-[0_4px_12px_rgba(255,139,167,0.1)]">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
                         <FaStar
-                          key={i}
-                          className={
-                            i < Math.round(latestPost.rating)
+                          key={star}
+                          className={`w-8 h-8 ${
+                            star <= Math.round(latestPost.rating)
                               ? "text-yellow-400"
-                              : "text-gray-300"
-                          }
+                              : "text-gray-200"
+                          }`}
                         />
                       ))}
                     </div>
-                    <p className="font-medium text-gray-700">
-                      {latestPost.rating} / 5
-                    </p>
-                  </div>
-
-                  <div className="mt-3">
-                    <StatusBadge status={latestPost.status} />
+                    <span className="text-lg font-medium bg-gradient-to-r from-[#ff8ba7] to-[#ffc6c7] bg-clip-text text-transparent">
+                      {latestPost.rating} de 5
+                    </span>
                   </div>
                 </div>
 
-                {/* Right card - Content */}
-                <div className="lg:w-2/3 bg-white rounded-xl shadow-lg p-6">
+                {/* Right card - Content remains the same */}
+                <div className="lg:w-1/2 bg-white rounded-xl shadow-lg p-6">
                   <div className="mb-6">
                     <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
                       Mi reseña
@@ -115,6 +104,13 @@ export default async function Home() {
                       </div>
                     </div>
                   )}
+
+                  <div className="mt-6">
+                    <h2 className="text-xl font-medium mb-3 text-[#ff8ba7]">
+                      Estado
+                    </h2>
+                    <StatusBadge status={latestPost.status} />
+                  </div>
                 </div>
               </div>
 
@@ -146,7 +142,7 @@ export default async function Home() {
       <footer className="bg-white py-4 border-t border-pink-100">
         <div className="container mx-auto px-4">
           <p className="text-center text-[#ff8ba7] text-sm">
-            Hecho con 💖 para mi fan favorita de doramas
+            Hecho con 💖 para mi fan favorita de doramas: KR 🦎
           </p>
         </div>
       </footer>

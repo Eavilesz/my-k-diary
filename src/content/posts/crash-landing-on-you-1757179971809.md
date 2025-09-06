@@ -1,12 +1,12 @@
 ---
 title: "Crash landing on you"
-coverImage: "https://upload.wikimedia.org/wikipedia/en/6/64/Crash_Landing_on_You_main_poster.jpg"
+coverImage: "https://m.media-amazon.com/images/M/MV5BZjM3ZGQ4ZTMtOTNjMS00NmJlLTljMWUtNWExMzJhMGJlMWNiXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"
 rating: 4
-status: "Viendo"
+status: "Finalizado"
 tags: ["Romántico", "Chevere", "Chistoso"]
 favoriteQuote: "La vida es dura pero más dura es la verdura "
 createdAt: "2025-09-06T17:32:51.777Z"
-updatedAt: "2025-09-06T17:32:51.778Z"
+updatedAt: "2025-09-06T17:45:13.407Z"
 whereToWatch:
   - platform: "Netflix"
     icon: "netflix"
@@ -23,4 +23,9 @@ song:
   youtubeUrl: "https://www.youtube.com/results?search_query=never+gonna+give+you+up"
 ---
 
-Esta es la reseña y está malísimo el drama :V
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non imperdiet sapien. In hac habitasse platea dictumst. Aenean leo nibh, blandit vitae auctor eget, efficitur non augue. Curabitur et sem et metus viverra vulputate sed nec massa. Aliquam ultrices nunc eu nulla suscipit ornare. Integer sollicitudin massa eget justo ullamcorper, in euismod mi blandit. Mauris pulvinar venenatis augue, non consequat ante euismod nec. Nulla viverra nisi non maximus convallis. Duis nec lorem lacus. Duis odio elit, luctus vitae augue eu, imperdiet elementum eros. Nunc nec imperdiet enim, id sagittis enim. In hac habitasse platea dictumst. Nam fermentum tellus eget volutpat porttitor. Etiam nec efficitur ante. Sed faucibus tortor vel viverra interdum.
+
+
+
+
