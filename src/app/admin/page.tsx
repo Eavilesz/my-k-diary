@@ -61,17 +61,14 @@ export default function AdminDashboard() {
     <div className="min-h-screen flex flex-col">
       <header className="bg-white border-b border-pink-100">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-[#ff8ba7]">
-            My K-Diary Admin
-          </h1>
+          <Link
+            href="/"
+            className="text-2xl font-bold text-[#ff8ba7] hover:text-[#ff7b9c] transition-colors"
+          >
+            My K-Diary
+          </Link>
           <div className="flex items-center gap-4">
             <span className="text-gray-600">{session?.user?.name || ""}</span>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md text-sm transition-colors"
-            >
-              Inicio
-            </Link>
             <button
               onClick={handleSignOut}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm"
