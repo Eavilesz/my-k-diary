@@ -1,10 +1,4 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-import { remark } from "remark";
-import html from "remark-html";
-
-const postsDirectory = path.join(process.cwd(), "src/content/posts");
+import { supabase } from "./supabase";
 
 // Define the allowed status values
 export type Status = "Viendo" | "Finalizado" | "Abandonado";
@@ -36,136 +30,118 @@ export interface KDramaPost {
   content: string;
 }
 
-// Define the platform type for better type safety
-type Platform = {
-  platform: string;
-  icon: string;
-};
+// Helper function to convert DB format to our format
+function dbToPost(dbPost: any): KDramaPost {
+  return {
+    id: dbPost.id,
+    title: dbPost.title,
+    coverImage: dbPost.cover_image,
+    rating: dbPost.rating,
+    review: dbPost.review,
+    status: dbPost.status,
+    tags: dbPost.tags || [],
+    favoriteQuote: dbPost.favorite_quote,
+    createdAt: dbPost.created_at,
+    updatedAt: dbPost.updated_at,
+    whereToWatch: dbPost.where_to_watch || [],
+    koreanCrush: dbPost.korean_crush,
+    song: dbPost.song,
+  };
+}
 
-// Get all post IDs for static generation
-export function getAllPostIds() {
-  const fileNames = fs.readdirSync(postsDirectory);
-  return fileNames.map((fileName) => {
-    return {
-      params: {
-        id: fileName.replace(/\.md$/, ""),
-      },
-    };
-  });
+// Helper function to convert our format to DB format
+function postToDb(post: Partial<KDramaPost>) {
+  return {
+    title: post.title,
+    cover_image: post.coverImage,
+    rating: post.rating,
+    review: post.review,
+    status: post.status,
+    tags: post.tags,
+    favorite_quote: post.favoriteQuote,
+    where_to_watch: post.whereToWatch,
+    korean_crush: post.koreanCrush,
+    song: post.song,
+  };
 }
 
 // Get all posts data
 export async function getAllPostsData(): Promise<KDramaPost[]> {
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = await Promise.all(
-    fileNames.map(async (fileName) => {
-      const id = fileName.replace(/\.md$/, "");
-      return await getPostData(id);
-    })
-  );
+  const { data, error } = await supabase
+    .from("kdrama_posts")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  // Sort posts by date
-  return allPostsData.sort((a, b) => {
-    if (a.createdAt < b.createdAt) {
-      return 1;
-    } else {
-      return -1;
-    }
-  });
+  if (error) {
+    console.error("Error fetching posts:", error);
+    return [];
+  }
+
+  return data.map(dbToPost);
 }
 
 // Get specific post data
-export async function getPostData(id: string): Promise<KDramaPost> {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
-  const fileContents = fs.readFileSync(fullPath, "utf8");
+export async function getPostData(id: string): Promise<KDramaPost | null> {
+  const { data, error } = await supabase
+    .from("kdrama_posts")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  // Use gray-matter to parse the post metadata section
-  const matterResult = matter(fileContents);
+  if (error) {
+    console.error("Error fetching post:", error);
+    return null;
+  }
 
-  // Use remark to convert markdown into HTML string
-  const processedContent = await remark()
-    .use(html)
-    .process(matterResult.content);
-  const contentHtml = processedContent.toString();
-
-  // Combine the data with the id and contentHtml
-  return {
-    id,
-    content: contentHtml,
-    review: matterResult.content, // Keep the raw markdown for review
-    ...matterResult.data,
-  } as KDramaPost;
+  return dbToPost(data);
 }
 
 // Get the latest post
 export async function getLatestPost(): Promise<KDramaPost | null> {
-  const allPosts = await getAllPostsData();
-  return allPosts.length > 0 ? allPosts[0] : null;
+  const { data, error } = await supabase
+    .from("kdrama_posts")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching latest post:", error);
+    return null;
+  }
+
+  return data ? dbToPost(data) : null;
 }
 
 // Check if a post exists
-export function postExists(id: string): boolean {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
-  return fs.existsSync(fullPath);
+export async function postExists(id: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("kdrama_posts")
+    .select("id")
+    .eq("id", id)
+    .single();
+
+  return !error && !!data;
 }
 
 // Create a new post
 export async function createPost(
-  postData: Omit<KDramaPost, "id" | "content">
+  postData: Omit<KDramaPost, "id" | "createdAt" | "updatedAt">
 ): Promise<string> {
-  // Generate a slug from the title
-  const slug = postData.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+  const dbData = postToDb(postData);
 
-  const id = `${slug}-${Date.now()}`;
-  const fullPath = path.join(postsDirectory, `${id}.md`);
+  const { data, error } = await supabase
+    .from("kdrama_posts")
+    .insert([dbData])
+    .select()
+    .single();
 
-  // Create frontmatter with proper null checks
-  const frontmatter = `---
-title: "${postData.title}"
-coverImage: "${postData.coverImage}"
-rating: ${postData.rating}
-status: "${postData.status}"
-tags: [${(postData.tags || []).map((tag) => `"${tag}"`).join(", ")}]
-${postData.favoriteQuote ? `favoriteQuote: "${postData.favoriteQuote}"` : ""}
-createdAt: "${postData.createdAt}"
-updatedAt: "${postData.updatedAt}"
-${
-  postData.whereToWatch && postData.whereToWatch.length > 0
-    ? `whereToWatch:
-${postData.whereToWatch
-  .map(
-    (platform) => `  - platform: "${platform.platform}"
-    icon: "${platform.icon}"`
-  )
-  .join("\n")}`
-    : ""
-}
-${
-  postData.koreanCrush && postData.koreanCrush.name
-    ? `koreanCrush:
-  name: "${postData.koreanCrush.name}"
-  ${postData.koreanCrush.image ? `image: "${postData.koreanCrush.image}"` : ""}`
-    : ""
-}
-${
-  postData.song && postData.song.title
-    ? `song:
-  title: "${postData.song.title}"
-  artist: "${postData.song.artist}"
-  youtubeUrl: "${postData.song.youtubeUrl}"`
-    : ""
-}
----
+  if (error) {
+    console.error("Error creating post:", error);
+    throw new Error("Failed to create post");
+  }
 
-${postData.review}
-`;
-
-  // Write the file
-  fs.writeFileSync(fullPath, frontmatter);
-  return id;
+  return data.id;
 }
 
 // Update an existing post
@@ -173,87 +149,44 @@ export async function updatePost(
   id: string,
   postData: Partial<KDramaPost>
 ): Promise<void> {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
+  const dbData = postToDb(postData);
 
-  if (!fs.existsSync(fullPath)) {
-    throw new Error(`Post ${id} not found`);
+  const { error } = await supabase
+    .from("kdrama_posts")
+    .update({
+      ...dbData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating post:", error);
+    throw new Error(`Failed to update post ${id}`);
   }
-
-  const fileContents = fs.readFileSync(fullPath, "utf8");
-  const matterResult = matter(fileContents);
-
-  // Merge the existing data with the new data
-  const updatedData = {
-    ...matterResult.data,
-    ...postData,
-    updatedAt: new Date().toISOString(),
-  };
-
-  // Remove content and review from frontmatter data since review goes in content
-  const { ...frontmatterData } = updatedData;
-
-  // Create frontmatter string with proper null checks
-  const frontmatter = `---
-title: "${frontmatterData.title || ""}"
-coverImage: "${frontmatterData.coverImage || ""}"
-rating: ${frontmatterData.rating || 5}
-status: "${frontmatterData.status || "Viendo"}"
-tags: [${(frontmatterData.tags || [])
-    .map((tag: string) => `"${tag}"`)
-    .join(", ")}]
-${
-  frontmatterData.favoriteQuote
-    ? `favoriteQuote: "${frontmatterData.favoriteQuote}"`
-    : ""
-}
-createdAt: "${frontmatterData.createdAt || new Date().toISOString()}"
-updatedAt: "${frontmatterData.updatedAt || new Date().toISOString()}"
-${
-  frontmatterData.whereToWatch && frontmatterData.whereToWatch.length > 0
-    ? `whereToWatch:
-${frontmatterData.whereToWatch
-  .map(
-    (platform: Platform) => `  - platform: "${platform.platform}"
-    icon: "${platform.icon}"`
-  )
-  .join("\n")}`
-    : ""
-}
-${
-  frontmatterData.koreanCrush && frontmatterData.koreanCrush.name
-    ? `koreanCrush:
-  name: "${frontmatterData.koreanCrush.name}"
-  ${
-    frontmatterData.koreanCrush.image
-      ? `image: "${frontmatterData.koreanCrush.image}"`
-      : ""
-  }`
-    : ""
-}
-${
-  frontmatterData.song && frontmatterData.song.title
-    ? `song:
-  title: "${frontmatterData.song.title}"
-  artist: "${frontmatterData.song.artist}"
-  youtubeUrl: "${frontmatterData.song.youtubeUrl}"`
-    : ""
-}
----
-
-${postData.review || matterResult.content}
-`;
-
-  // Write the file
-  fs.writeFileSync(fullPath, frontmatter);
 }
 
 // Delete a post
-export function deletePost(id: string): void {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
+export async function deletePost(id: string): Promise<void> {
+  const { error } = await supabase.from("kdrama_posts").delete().eq("id", id);
 
-  if (!fs.existsSync(fullPath)) {
-    throw new Error(`Post ${id} not found`);
+  if (error) {
+    console.error("Error deleting post:", error);
+    throw new Error(`Failed to delete post ${id}`);
+  }
+}
+
+// Get all post IDs (for static generation)
+export async function getAllPostIds() {
+  const { data, error } = await supabase.from("kdrama_posts").select("id");
+
+  if (error) {
+    console.error("Error fetching post IDs:", error);
+    return [];
   }
 
-  fs.unlinkSync(fullPath);
+  return data.map((post) => ({
+    params: {
+      id: post.id,
+    },
+  }));
 }

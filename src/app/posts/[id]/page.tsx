@@ -8,7 +8,7 @@ import Header from "@/components/Header";
 
 // Generate static params for all posts
 export async function generateStaticParams() {
-  const paths = getAllPostIds();
+  const paths = await getAllPostIds();
   return paths.map((path) => ({
     id: path.params.id,
   }));
@@ -39,11 +39,15 @@ export default async function PostPage({
 }) {
   const { id } = await params;
 
-  if (!postExists(id)) {
+  if (!(await postExists(id))) {
     notFound();
   }
 
   const post = await getPostData(id);
+
+  if (!post) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -94,11 +98,10 @@ export default async function PostPage({
                 Reseña sin spoilers:
               </h3>
 
-              {/* Render the markdown content as HTML */}
-              <div
-                className="prose prose-gray max-w-none mb-6"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
+              {/* Render the review as plain text (no HTML conversion needed) */}
+              <div className="prose prose-gray max-w-none mb-6 whitespace-pre-wrap">
+                {post.review}
+              </div>
 
               <div className="grid gap-4">
                 {/* Where to Watch Section */}
@@ -149,7 +152,7 @@ export default async function PostPage({
                 {/* Song Section */}
                 {post.song && (
                   <div className="border-t border-pink-100 pt-4">
-                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 flex items-center gap-2 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
+                    <h4 className="text-xl font-semibold text-[#ff8ba7] mb-4 flex items-center gap-2 relative  after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#ff8ba7] after:to-transparent">
                       <FaMusic className="text-2xl" />
                       Para cantar a todo pulmón:
                     </h4>
