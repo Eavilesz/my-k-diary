@@ -65,7 +65,13 @@ export default function AdminDashboard() {
             My K-Diary Admin
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-gray-600">{session?.user?.email || ""}</span>
+            <span className="text-gray-600">{session?.user?.name || ""}</span>
+            <Link
+              href="/"
+              className="px-4 py-2 bg-[#ff8ba7] hover:bg-[#ff7b9c] text-white rounded-md text-sm transition-colors"
+            >
+              Inicio
+            </Link>
             <button
               onClick={handleSignOut}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm"
