@@ -9,7 +9,7 @@ export interface KDramaPost {
   coverImage: string;
   rating: number;
   review: string;
-  status: Status; // Changed from string to Status type
+  status: Status;
   tags: string[];
   favoriteQuote?: string;
   createdAt: string;
@@ -30,8 +30,35 @@ export interface KDramaPost {
   content: string;
 }
 
+// Define the database schema type
+interface DbKDramaPost {
+  id: string;
+  title: string;
+  cover_image: string;
+  rating: number;
+  review: string;
+  status: Status;
+  tags: string[];
+  favorite_quote?: string;
+  created_at: string;
+  updated_at: string;
+  where_to_watch?: Array<{
+    platform: string;
+    icon: string;
+  }>;
+  korean_crush?: {
+    name: string;
+    image?: string;
+  };
+  song?: {
+    title: string;
+    artist: string;
+    youtubeUrl: string;
+  };
+}
+
 // Helper function to convert DB format to our format
-function dbToPost(dbPost: any): KDramaPost {
+function dbToPost(dbPost: DbKDramaPost): KDramaPost {
   return {
     id: dbPost.id,
     title: dbPost.title,
@@ -46,6 +73,7 @@ function dbToPost(dbPost: any): KDramaPost {
     whereToWatch: dbPost.where_to_watch || [],
     koreanCrush: dbPost.korean_crush,
     song: dbPost.song,
+    content: dbPost.review, // Using review as content
   };
 }
 
@@ -77,7 +105,7 @@ export async function getAllPostsData(): Promise<KDramaPost[]> {
     return [];
   }
 
-  return data.map(dbToPost);
+  return (data as DbKDramaPost[]).map(dbToPost);
 }
 
 // Get specific post data
@@ -93,7 +121,7 @@ export async function getPostData(id: string): Promise<KDramaPost | null> {
     return null;
   }
 
-  return dbToPost(data);
+  return dbToPost(data as DbKDramaPost);
 }
 
 // Get the latest post
@@ -110,7 +138,7 @@ export async function getLatestPost(): Promise<KDramaPost | null> {
     return null;
   }
 
-  return data ? dbToPost(data) : null;
+  return data ? dbToPost(data as DbKDramaPost) : null;
 }
 
 // Check if a post exists
@@ -141,7 +169,7 @@ export async function createPost(
     throw new Error("Failed to create post");
   }
 
-  return data.id;
+  return (data as DbKDramaPost).id;
 }
 
 // Update an existing post
